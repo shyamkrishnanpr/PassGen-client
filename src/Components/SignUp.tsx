@@ -1,11 +1,15 @@
 
-import {Link} from 'react-router-dom'
+import {Link, useNavigate} from 'react-router-dom'
 import InputField from "./InputField"
 import {useFormik} from 'formik'
 import { signUpSchema } from '../Utils/SignupValidation'
+import { signUpApi } from '../Services/service'
+import {message} from 'antd'
 
 
 const SignUp = () => {
+
+  const navigate = useNavigate()
 
     const formik = useFormik({
         initialValues:{
@@ -15,8 +19,21 @@ const SignUp = () => {
 
         },
         validationSchema:signUpSchema,
-        onSubmit:(values)=>{
+        onSubmit:async(values)=>{
             console.log(values)
+            try {
+                const responce = await signUpApi(values)
+                console.log(responce)
+                if(responce.data){
+                  localStorage.setItem('UserToken', JSON.stringify(responce.data));
+                  message.success('logged in successfully.');
+                  navigate('/');
+                }else{
+                  message.error("Network error")
+                }
+            } catch (error:any) {
+              message.error(error.response.data.error)
+            }
         }
     });
 

@@ -1,11 +1,13 @@
 import { useFormik } from "formik";
 import InputField from "./InputField";
-import {Link} from 'react-router-dom'
+import {Link, useNavigate} from 'react-router-dom'
 import { loginSchema } from "../Utils/LoginValidation";
-
+import {message} from 'antd'
+import { loginApi } from "../Services/service";
 
 const Login = () => {
 
+  const navigate = useNavigate()
 
 
   const formik = useFormik({
@@ -14,9 +16,25 @@ const Login = () => {
       password: '',
     },
     validationSchema: loginSchema ,
-    onSubmit: (values) => {
-      // Handle form submission here
+    onSubmit:async(values) => {
+      
       console.log(values);
+      try {
+        const response = await loginApi(values)
+        console.log(response)
+        if(response.data){
+          localStorage.setItem('UserToken', JSON.stringify(response.data));
+          message.success('logged in successfully.');
+          navigate('/');
+        }else{
+          message.error("Network error")
+        }
+   
+        
+        
+      } catch (error:any) {
+        message.error(error.response?.data.error)
+      }
     },
   });
 
@@ -67,7 +85,7 @@ const Login = () => {
                 <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                   Don’t have an account yet?{" "}
                   <Link
-                    to={'/sign-up'}
+                    to={'/signUp'}
                     className="font-medium text-blue-500 hover:underline dark:text-primary-500"
                   >
                     SIGN UP

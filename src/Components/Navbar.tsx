@@ -3,9 +3,16 @@ import { useNavigate } from "react-router-dom";
 const Navbar = () => {
   const navigate = useNavigate();
 
-  const handleLogin = () =>{
-    navigate('/login')
-  }
+  const handleLogin = () => {
+    navigate("/login");
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("UserToken");
+    navigate("/");
+  };
+
+  const userToken = localStorage.getItem("UserToken");
 
   return (
     <>
@@ -17,9 +24,23 @@ const Navbar = () => {
           >
             PassWord Generator
           </a>
-          <button type="button" onClick={handleLogin} className="bg-white text-blue-500 hover:bg-blue-100 text-sm font-semibold px-4 py-2 rounded-full transition duration-300 ease-in-out">
-            Login
-          </button>
+          {userToken ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="bg-white text-blue-500 hover:bg-blue-100 text-sm font-semibold px-4 py-2 rounded-full transition duration-300 ease-in-out"
+            >
+              Logout
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleLogin}
+              className="bg-white text-blue-500 hover:bg-blue-100 text-sm font-semibold px-4 py-2 rounded-full transition duration-300 ease-in-out"
+            >
+              Login
+            </button>
+          )}
         </div>
       </nav>
     </>
