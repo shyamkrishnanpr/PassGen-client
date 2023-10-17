@@ -16,7 +16,7 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="bg-gradient-to-r from-green-600 via-blue-600 to-violet-700 p-4 m-5 w-auto rounded-3xl">
+      <nav className="bg-gradient-to-r from-green-600 via-blue-600 to-violet-700 p-4 m-2 w-auto rounded-3xl">
         <div className="container mx-auto flex justify-between items-center">
           <a
             href="#"

@@ -5,4 +5,19 @@ const instance = axios.create({
 })
 
 
+instance.interceptors.request.use(
+    (config) => {
+      
+     const userToken = localStorage.getItem('UserToken');
+      console.log("token in axios",userToken)
+      if (userToken) {
+        config.headers.Authorization = JSON.parse(userToken).token;
+      }
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
+
 export default instance
