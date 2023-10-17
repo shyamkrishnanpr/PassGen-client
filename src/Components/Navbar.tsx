@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -9,19 +9,23 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("UserToken");
-    navigate("/");
+    navigate("/login");
   };
 
   const userToken = localStorage.getItem("UserToken");
 
   return (
     <>
-      <nav className="bg-gradient-to-r from-green-600 via-blue-600 to-violet-700 p-4 m-2 w-auto rounded-3xl">
+      <nav className="bg-gradient-to-r from-green-600 via-blue-400 to-pink-700 p-4 m-2 w-auto rounded-3xl">
         <div className="container mx-auto flex justify-between items-center">
-          <a
-            href="#"
-            className="text-white text-2xl font-extrabold hover:text-violet-300 transition-colors"
+          <Link
+            to={"/"}
+            className="font-medium text-white  dark:text-primary-500"
           >
+            Home
+          </Link>
+
+          <a className="text-white text-2xl font-extrabold  transition-colors">
             PassWord Generator
           </a>
           {userToken ? (

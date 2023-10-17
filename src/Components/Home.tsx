@@ -1,77 +1,110 @@
 import { useEffect, useState } from "react";
 import Modal from "../MOdal/Modal";
 import { InputNumber, Slider, Switch, message } from "antd";
-import { savePasswordApi } from "../Services/service";
-
+import {
+  savePasswordApi,
+  fetchPasswordApi,
+  deletePasswordApi,
+} from "../Services/service";
+import Card from "./Card";
 
 const numbers = "0123456789";
 const upperCaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const lowerCaseLetters = "abcdefghijklmnopqrstuvwxyz";
 const specialCharacters = "!@#$%^&*-_=~`|/:;,.";
 
-
 const Home = () => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [password, setPassword] = useState<string>("");
+  const [appName, setAppName] = useState<string>("");
+  const [userName, setUserName] = useState<string>("");
+  const [passwordLength, setPasswordLength] = useState<number>(4);
+  const [includeUppercase, setIncludeUppercase] = useState<boolean>(false);
+  const [includeLowercase, setIncludeLowercase] = useState<boolean>(false);
+  const [includeNumbers, setIncludeNumbers] = useState<boolean>(false);
+  const [includeSymbols, setIncludeSymbols] = useState<boolean>(false);
 
-    const [modalOpen, setModalOpen] = useState(false);
-    const [password, setPassword] = useState<string>("");
-    const [appName, setAppName] = useState<string>("");
-    const [userName, setUserName] = useState<string>("");
-    const [passwordLength, setPasswordLength] = useState<number>(4);
-    const [includeUppercase, setIncludeUppercase] = useState<boolean>(false);
-    const [includeLowercase, setIncludeLowercase] = useState<boolean>(false);
-    const [includeNumbers, setIncludeNumbers] = useState<boolean>(false);
-    const [includeSymbols, setIncludeSymbols] = useState<boolean>(false);
+  const [generatedPassword, setGeneratedPassword] = useState<string>("");
+  const [allOptionsSelected, setAllOptionsSelected] = useState<boolean>(false);
+  const [passwordGenerated, setPasswordGenerated] = useState<boolean>(false);
 
-    const [generatedPassword, setGeneratedPassword] = useState<string>("");
-    const [allOptionsSelected, setAllOptionsSelected] = useState<boolean>(false);
-    const [passwordGenerated, setPasswordGenerated] = useState<boolean>(false);
-  
-    const [savedPasswordData, setSavedPasswordData] = useState<any>([]);
+  const [savedPasswordData, setSavedPasswordData] = useState<any>([]);
 
-    useEffect(() => {
-        if (
-          includeUppercase ||
-          includeLowercase ||
-          includeNumbers ||
-          includeSymbols
-        ) {
-          setAllOptionsSelected(true);
-        } else {
-          setAllOptionsSelected(false);
-        }
-      }, [includeUppercase, includeLowercase, includeNumbers, includeSymbols]);
+  const userToken = localStorage.getItem("UserToken");
 
-    const openModal = () => {
-        setModalOpen(true)
-    }
-
-
-    const closeModal = () => {
-        setModalOpen(false);
-      };
-
-      const handleGeneratePassword = () => {
-        let characterList = "";
-        if (includeUppercase) {
-          characterList += upperCaseLetters;
-        }
-        if (includeLowercase) {
-          characterList += lowerCaseLetters;
-        }
-        if (includeNumbers) {
-          characterList += numbers;
-        }
-        if (includeSymbols) {
-          characterList += specialCharacters;
-        }
-        const generatedPassword = createRandomPassword(characterList);
-        setPassword(generatedPassword);
-        setGeneratedPassword(password);
-        setPasswordGenerated(true);
-      };
-
+  const fetchData = async () => {
+    try {
+      const response = await fetchPasswordApi();
 
       
+      if (response && response.data) {
+        setSavedPasswordData(response.data);
+      } else {
+        message.error("Network error");
+      }
+    } catch (error: any) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  console.log(savedPasswordData);
+
+  useEffect(() => {
+    if (
+      includeUppercase ||
+      includeLowercase ||
+      includeNumbers ||
+      includeSymbols
+    ) {
+      setAllOptionsSelected(true);
+    } else {
+      setAllOptionsSelected(false);
+    }
+  }, [includeUppercase, includeLowercase, includeNumbers, includeSymbols]);
+
+  const openModal = () => {
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+  };
+
+  const handleGeneratePassword = () => {
+    let characterList = "";
+
+    if (
+      !includeUppercase &&
+      !includeLowercase &&
+      !includeNumbers &&
+      !includeSymbols
+    ) {
+      message.error("Please add the required fields..");
+      return;
+    }
+
+    if (includeUppercase) {
+      characterList += upperCaseLetters;
+    }
+    if (includeLowercase) {
+      characterList += lowerCaseLetters;
+    }
+    if (includeNumbers) {
+      characterList += numbers;
+    }
+    if (includeSymbols) {
+      characterList += specialCharacters;
+    }
+    const generatedPassword = createRandomPassword(characterList);
+    setPassword(generatedPassword);
+    setGeneratedPassword(password);
+    setPasswordGenerated(true);
+  };
+
   function createRandomPassword(characterList: string): string {
     let password = "";
     let characterListLength = characterList.length;
@@ -82,44 +115,41 @@ const Home = () => {
     return password;
   }
 
-  
   const onPasswordLengthChange = (value: number | null | undefined) => {
     if (value !== null && value !== undefined) {
       setPasswordLength(value);
     }
   };
 
-  const handleSavePassword = async() =>{
-
-    if (allOptionsSelected &&
-        passwordGenerated &&
-        appName.trim()!=="" &&
-        userName.trim()!=="") {
-        const savedData = {
-            appName:appName,
-            userName:userName,
-            password:password
+  const handleSavePassword = async () => {
+    if (
+      allOptionsSelected &&
+      passwordGenerated &&
+      appName.trim() !== "" &&
+      userName.trim() !== ""
+    ) {
+      const savedData = {
+        appName: appName,
+        userName: userName,
+        password: password,
+      };
+      try {
+        const response = await savePasswordApi(savedData);
+        if (response && response.data) {
+          message.success("Password Created successfully.");
+          fetchData();
+          closeModal();
+        } else {
+          message.error("Network error");
         }
-        try {
-             
 
-            const response = await savePasswordApi(savedData); 
-            if (response && response.data) {
-                message.success("Password Created successfully.");
-                closeModal()
-              } else {
-                message.error("Network error");
-              }
-
-            console.log(response)
-        } catch (error:any) {
-            message.error(error.response.data.error)
-        }
+        console.log(response);
+      } catch (error: any) {
+        message.error("Please login to continue..");
+      }
     } else {
-        
     }
-  }
-
+  };
 
   const handleCopyClick = () => {
     if (password.length > 0) {
@@ -128,10 +158,28 @@ const Home = () => {
     }
   };
 
+  const handleCopy = (password: string) => {
+    navigator.clipboard.writeText(password);
+    message.success("Successfully copied");
+  };
+
+  const handleDelete = async (id: string) => {
+    console.log("clicked", id);
+
+    const response = await deletePasswordApi(id);
+
+    console.log(response);
+
+    if (response && response.data) {
+      message.success(response?.data?.message);
+      fetchData();
+      closeModal();
+    } else {
+      message.error("Network error");
+    }
+  };
+
   return (
-
-
-
     <div className="mb-16 ml-2 mr-2">
       <div className="relative md:flex-row">
         <img
@@ -142,23 +190,21 @@ const Home = () => {
 
         <div className="absolute top-96 left-96 right-0 bottom-0 flex flex-col justify-center items-center md:items-start md:w-1/2 ">
           <div className="mb-4 md:mb-0 space-y-4 md:space-y-0 md:space-x-4 flex flex-col md:flex-row">
-            <button className=" text-white px-6 py-3 rounded-lg hover:bg-pink-600 transition w-full md:w-auto" 
-             onClick={openModal}>
+            <button
+              className=" text-white px-6 py-3 rounded-lg hover:bg-pink-600 transition w-full md:w-auto"
+              onClick={openModal}
+            >
               Generate Password
             </button>
           </div>
         </div>
       </div>
 
-
-
-     
-
       <Modal isOpen={modalOpen} onClose={closeModal}>
         <div className="space-y-5">
           <h1 className="text-2xl font-bold">Add Password</h1>
           <div className="fixed left-1/2 top-1/2 w-80 -translate-x-1/2 -translate-y-1/2 transform rounded-md bg-white p-5 sm:w-96">
-            <div className="space-y-5 bg-white ">
+            <div className="space-y-5 bg-gray-200 ">
               <h1 className="text-2xl font-bold">Add Password</h1>
               <div className="flex justify-between">
                 <input
@@ -323,8 +369,28 @@ const Home = () => {
         </div>
       </Modal>
 
-
-
+      {userToken ? (
+        <>
+          <h1 className="text-4xl font-semibold mb-4 ml-10 mt-4 font-serif text-black ">
+            Saved Passwords
+          </h1>
+          <div>
+            <div className="flex flex-wrap">
+              {savedPasswordData.map((data: any, index: number) => (
+                <Card
+                  key={index}
+                  head={data.appName}
+                  title={`UserName: ${data.userName}`}
+                  onCopy={() => handleCopy(data.password)}
+                  onDelete={() => handleDelete(data._id)}
+                />
+              ))}
+            </div>
+          </div>
+        </>
+      ) : (
+        ""
+      )}
     </div>
   );
 };
